@@ -272,22 +272,24 @@ def graph_cut(img, types, alphas, fg_gmm, bg_gmm, beta, gamma, lamda):
     # because this step is to compute new alphas for the unknown regions
     
     # CLOSURE FUNCTIONS FOR CAPACITY AND ENERGIES
-    def compute_D(i, j):
-        sample = img[i, j].reshape((1, -1))
+    fg_D = - fg_gmm.score_samples(img.reshape((-1, img.shape[-1]))).reshape(img.shape[:-1])
+    bg_D = - bg_gmm.score_samples(img.reshape((-1, img.shape[-1]))).reshape(img.shape[:-1])
+    # def compute_D(i, j):
+    #     sample = img[i, j].reshape((1, -1))
         
-        # foreground
-        fg_log_pr = fg_gmm.score_samples(sample)[0]
-        fg_label = fg_gmm.predict(sample)[0]
-        fg_log_wt = np.log(fg_gmm.weights_[fg_label])
-        fg_D = - fg_log_pr - fg_log_wt
+    #     # foreground
+    #     fg_log_pr = fg_gmm.score_samples(sample)[0]
+    #     # fg_label = fg_gmm.predict(sample)[0]
+    #     # fg_log_wt = np.log(fg_gmm.weights_[fg_label])
+    #     fg_D = - fg_log_pr # - fg_log_wt
 
-        # background
-        bg_log_pr = bg_gmm.score_samples(sample)[0]
-        bg_label = bg_gmm.predict(sample)[0]
-        bg_log_wt = np.log(bg_gmm.weights_[bg_label])
-        bg_D = - bg_log_pr - bg_log_wt
+    #     # background
+    #     bg_log_pr = bg_gmm.score_samples(sample)[0]
+    #     # bg_label = bg_gmm.predict(sample)[0]
+    #     # bg_log_wt = np.log(bg_gmm.weights_[bg_label])
+    #     bg_D = - bg_log_pr # - bg_log_wt
 
-        return fg_D, bg_D
+    #     return fg_D, bg_D
 
     def compute_V(i, j, oi, oj):
         if alphas[i, j] == alphas[oi, oj]:
@@ -327,10 +329,10 @@ def graph_cut(img, types, alphas, fg_gmm, bg_gmm, beta, gamma, lamda):
     S = num_pix
     T = num_pix+1
 
+    edges = []
+    weights = []
     for i in tq(range(img.shape[0]), leave=False, position=0):
         for j in tq(range(img.shape[1]), leave=False, position=1):
-            edges = []
-            weights = []
 
             # add edges to S and T
             if types[i, j] == con.FIX:
@@ -341,13 +343,13 @@ def graph_cut(img, types, alphas, fg_gmm, bg_gmm, beta, gamma, lamda):
                     edges.append((vid(i, j), T))
                     weights.append(fix_cap)
             else:
-                fg_D, bg_D = compute_D(i, j)
+                # fg_D, bg_D = compute_D(i, j)
                 
                 edges.append((vid(i, j), S))
-                weights.append(lamda * bg_D)
+                weights.append(lamda * bg_D[i, j])
 
                 edges.append((vid(i, j), T))
-                weights.append(lamda * fg_D)
+                weights.append(lamda * fg_D[i, j])
             
             # add edges to neighbours
             if i > 0:
@@ -362,8 +364,7 @@ def graph_cut(img, types, alphas, fg_gmm, bg_gmm, beta, gamma, lamda):
                 edges.append((vid(i, j), vid(oi, oj)))
                 weights.append(compute_V(i, j, oi, oj))
             
-            graph.add_edges(edges, attributes={'weight': weights})
-
+    graph.add_edges(edges, attributes={'weight': weights})
     logging.debug('MINCUT')
     flow, bg_vertices, fg_vertices = graph.st_mincut(S, T, capacity='weight')[0:2]
     new_alphas = np.zeros(img.shape, dtype=np.uint8) # con.BG is filled, zeroes is faster
@@ -420,7 +421,7 @@ def grab_cut(img_, rect, mask_, gamma=GAMMA, lamda=LAMDA, num_iters=NUM_ITERS, t
 
 
 if __name__ == '__main__':
-    filename = '../images/banana1.jpg'              # Path to image file
+    filename = '../images/llama-resize.jpg'              # Path to image file
     try:
         run(filename)
     finally:
