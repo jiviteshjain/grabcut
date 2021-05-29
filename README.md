@@ -1,20 +1,30 @@
-[![Generic badge](https://img.shields.io/badge/CV-Assignment:3-BLUE.svg)](https://shields.io/)
-[![Generic badge](https://img.shields.io/badge/DUE-23:59hrs,16/03/2021-RED.svg)](https://shields.io/)
-# Assignment 3
-The goal of the assignment is to familiarize you with the use of Markov Random Fields for Computer Vision. Specifically, in the use-case of image segmentation. This assignment has been prepared by Rohan Chacko and Prajwal Maitin. Please raise doubts on the appropriate assignment thread on moodle.
+# GrabCut
 
-# Instructions
-- Follow the directory structure as shown below:
-  ```
-  ├── src           
-        ├── Assignment3.ipynb  // provided boilerplate code in notebook
-  ├── images                   // your test images
-  ├── Assignment3.pdf 
-  └── README.md
-  ```
-- `src` will contain the Jupyter notebook(s) used for the assignment.
-- `images` will contain images used for the questions.
-- Follow this directory structure for all following assignments in this course.
-- **Make sure you run your Jupyter notebook before committing, to save all outputs.**
+This software implements major portions of the GrabCut Algorithm <a href="#ref1">\[1\]</a>, a markov random field based image segmentation algorithm, a variant of which you might have seen available in Microsoft Office Products as the background removal tool.
 
-You are free to use standard GMM packages for this assignment. For usage of other pkgs, please contact the TAs.
+<img src="out/connect-1.png"/>
+
+The algorithm is iterative and interactive, and is known for the minimal and simple user interaction required, as well as its ability to fix the results using further iterations of user input.  
+
+The algorithm is based on multiple iterations of GraphCut <a href="#ref2">\[2\]</a>, and uses each iteration to improve its model of the foreground and background color distributions, which are modelled as gaussian mixtures. The notebook explains each step as it is performed. Look at the paper for more details.
+
+*Border matting (Section 4 of <a href="#ref1">\[1\]</a>) is not a part of this implementation.*
+
+## To run
+*All commands to be run from the repository root.*  
+
+1. Install python packages from the Python Package Index (preferably in a virtual environment).
+   ```(shell)
+   python3 -m venv env && source env/bin/activate # optional
+   pip install -r requirements.txt
+   ```
+2. Run the notebook on a jupyter server.
+   ```(shell)
+   jupyter notebook
+   ```
+   Open `src/grabcut.ipynb` in the web browser window.
+
+---
+<a id="ref1">\[1\]</a> Carsten Rother, Vladimir Kolmogorov, and Andrew Blake. 2004. "GrabCut": interactive foreground extraction using iterated graph cuts. ACM Trans. Graph. 23, 3 (August 2004), 309–314. DOI:https://doi.org/10.1145/1015706.1015720  
+
+<a id="ref2">\[2\]</a> Y. Y. Boykov and M. -. Jolly, "Interactive graph cuts for optimal boundary & region segmentation of objects in N-D images," Proceedings Eighth IEEE International Conference on Computer Vision. ICCV 2001, 2001, pp. 105-112 vol.1, doi: 10.1109/ICCV.2001.937505.
